@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>2027년 1월 1일까지 타이머</title>
+  <!-- Pretendard 웹폰트 적용 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <style>
+    html, body {
+      background: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
+      min-height: 100vh;
+      width: 100vw;
+      box-sizing: border-box;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      min-width: 240px;
+      margin: 0 auto;
+      padding: 40px 12px 0 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .tabs {
+      display: flex;
+      width: 100%;
+      margin-bottom: 32px;
+      border-bottom: 1px solid #444;
+      gap: 6px;
+      justify-content: space-between;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      cursor: pointer;
+      font-size: 1.1em;
+      background: none;
+      border: none;
+      color: #fff;
+      outline: none;
+      border-radius: 16px 16px 0 0;
+      border-bottom: 2px solid transparent;
+      transition: border 0.2s, background 0.2s;
+      font-family: inherit;
+      margin-bottom: -2px;
+    }
+    .tab.active {
+      border-bottom: 2px solid #fff;
+      font-weight: bold;
+      background: #181818;
+    }
+    .timer-value {
+      font-size: 2.2em;
+      text-align: center;
+      margin: 40px 0 0 0;
+      word-break: keep-all;
+      width: 100%;
+      min-height: 2.5em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+    .progress-container {
+      width: 100%;
+      max-width: 320px;
+      margin: 0;
+      background: #222;
+      border-radius: 12px;
+      height: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px #0008;
+      display: flex;
+      align-items: center;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4f8cff, #00e0c6);
+      transition: width 0.3s;
+    }
+    .percent-label {
+      margin-top: 6px;
+      font-size: 1.1em;
+      letter-spacing: 0.02em;
+      color: #fff;
+      text-shadow: 0 1px 2px #000a;
+      text-align: center;
+      width: 100%;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding-top: 18px;
+        max-width: 100vw;
+      }
+      .timer-value {
+        font-size: 1.2em;
+        margin-top: 18px;
+        gap: 8px;
+      }
+      .tab {
+        font-size: 0.98em;
+        padding: 9px 0;
+      }
+      .progress-container {
+        max-width: 100vw;
+        height: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-tab="default">기본</button>
+      <button class="tab" data-tab="days">일수</button>
+      <button class="tab" data-tab="minutes">분</button>
+      <button class="tab" data-tab="seconds">초</button>
+      <button class="tab" data-tab="percent">%</button>
+    </div>
+    <div class="timer-value" id="timerValue">계산중...</div>
+  </div>
+  <script>
+    // 타겟 날짜: 2027-01-01 00:00:00 KST
+    const targetDate = new Date('2027-01-01T00:00:00+09:00');
+    const percentStartDate = new Date('2025-05-03T00:00:00+09:00');
+    const timerValue = document.getElementById('timerValue');
+    const tabs = document.querySelectorAll('.tab');
+    let currentTab = 'default';
+
+    function updateTimer() {
+      const now = new Date();
+      let diff = targetDate - now;
+      if (diff < 0) diff = 0;
+
+      let display = '';
+      if (currentTab === 'default') {
+        let tempDate = new Date(now);
+        let months = (targetDate.getFullYear() - tempDate.getFullYear()) * 12 + (targetDate.getMonth() - tempDate.getMonth());
+        let monthStart = new Date(tempDate.getFullYear(), tempDate.getMonth() + months, tempDate.getDate(), tempDate.getHours(), tempDate.getMinutes(), tempDate.getSeconds(), tempDate.getMilliseconds());
+        if (monthStart > targetDate) {
+          months -= 1;
+          monthStart = new Date(tempDate.getFullYear(), tempDate.getMonth() + months, tempDate.getDate(), tempDate.getHours(), tempDate.getMinutes(), tempDate.getSeconds(), tempDate.getMilliseconds());
+        }
+        let rest = targetDate - monthStart;
+        let days = Math.floor(rest / (1000 * 60 * 60 * 24));
+        rest -= days * 1000 * 60 * 60 * 24;
+        let hours = Math.floor(rest / (1000 * 60 * 60));
+        rest -= hours * 1000 * 60 * 60;
+        let minutes = Math.floor(rest / (1000 * 60));
+        rest -= minutes * 1000 * 60;
+        let seconds = Math.floor(rest / 1000);
+        let ms = rest % 1000;
+        display = `${months}개월 ${days}일 ${hours}시간 ${minutes}분 ${seconds}초 ${String(ms).padStart(3, '0')}`;
+        timerValue.innerHTML = display;
+      } else if (currentTab === 'days') {
+        display = (diff / (1000 * 60 * 60 * 24)).toFixed(6) + '일';
+        timerValue.innerHTML = display;
+      } else if (currentTab === 'minutes') {
+        display = (Math.floor(diff / 60000)).toLocaleString() + '분';
+        timerValue.innerHTML = display;
+      } else if (currentTab === 'seconds') {
+        display = (Math.floor(diff / 1000)).toLocaleString() + '초';
+        timerValue.innerHTML = display;
+      } else if (currentTab === 'percent') {
+        const total = targetDate - percentStartDate;
+        let passed = now - percentStartDate;
+        if (passed < 0) passed = 0;
+        if (passed > total) passed = total;
+        const percent = total === 0 ? 100 : (passed / total * 100);
+        const percentText = percent.toFixed(6) + '%';
+        display = `
+          <div class="progress-container">
+            <div class="progress-bar" style="width:${percent}%;"></div>
+          </div>
+          <div class="percent-label">${percentText}</div>
+        `;
+        timerValue.innerHTML = display;
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTab = tab.getAttribute('data-tab');
+        updateTimer();
+      });
+    });
+
+    updateTimer();
+    setInterval(updateTimer, 33);
+  </script>
+</body>
+</html>
